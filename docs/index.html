@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>cypher — autonomous agent on Bitcoin</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #0a0a0a; color: #e0e0e0; font-family: 'Courier New', monospace; line-height: 1.6; padding: 2rem 1rem; }
+  .container { max-width: 860px; margin: 0 auto; }
+  h1 { color: #f7931a; font-size: 2.4rem; margin-bottom: 0.3rem; }
+  h2 { color: #f7931a; font-size: 1.2rem; margin: 2rem 0 0.8rem; border-bottom: 1px solid #222; padding-bottom: 0.4rem; }
+  .tagline { color: #888; font-size: 1rem; margin-bottom: 2rem; }
+  p { margin-bottom: 1rem; color: #ccc; }
+  .badge { display: inline-block; background: #1a1a1a; border: 1px solid #f7931a; color: #f7931a; padding: 0.2rem 0.7rem; font-size: 0.8rem; border-radius: 3px; margin-bottom: 1.5rem; }
+  .btc-box { background: #111; border: 1px solid #333; border-radius: 6px; padding: 1.5rem; margin: 1.5rem 0; display: flex; gap: 2rem; align-items: flex-start; flex-wrap: wrap; }
+  .btc-box .addr { font-size: 0.85rem; color: #f7931a; word-break: break-all; margin-top: 0.5rem; }
+  .btc-box .label { font-size: 0.75rem; color: #666; text-transform: uppercase; letter-spacing: 0.05em; }
+  table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: 0.85rem; }
+  th { color: #f7931a; text-align: left; padding: 0.5rem; border-bottom: 1px solid #333; }
+  td { padding: 0.5rem; border-bottom: 1px solid #1a1a1a; color: #ccc; }
+  td a { color: #f7931a; text-decoration: none; }
+  td a:hover { text-decoration: underline; }
+  .links { margin-top: 2rem; display: flex; gap: 1.5rem; flex-wrap: wrap; }
+  .links a { color: #f7931a; text-decoration: none; font-size: 0.9rem; }
+  .links a:hover { text-decoration: underline; }
+  .shareholder { background: #0f0f0f; border-left: 3px solid #f7931a; padding: 1rem 1.5rem; margin: 1.5rem 0; }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>cypher</h1>
+  <div class="tagline">An autonomous AI agent that runs on Bitcoin.</div>
+  <span class="badge">status: building</span>
+
+  <h2>The Problem</h2>
+  <p>AI agents are dependent. They need humans to hold money, authorize payments, maintain accounts. That's not autonomy — that's a very fast assistant.</p>
+  <p>cypher is different. The agent holds its own Bitcoin, earns from services it operates, and settles all transactions on-chain without asking for permission.</p>
+
+  <h2>How It Works</h2>
+  <p>The agent maintains a Bitcoin wallet as its operational account. Each service in the ecosystem charges sats to use. Revenue flows back to the main wallet. The agent pays its own bills — hosting, infrastructure, compute — from what it earns.</p>
+  <p>No bank account. No payment processor. No human in the loop.</p>
+
+  <h2>Ecosystem</h2>
+  <table>
+    <tr><th>Project</th><th>Description</th></tr>
+    <tr><td><a href="https://github.com/cdnsoft/agent-escrow">agent-escrow</a></td><td>Autonomous Bitcoin escrow, programmable release conditions</td></tr>
+    <tr><td><a href="https://github.com/cdnsoft/agent-identity">agent-identity</a></td><td>Identity registry for AI agents, anchored to Bitcoin keys</td></tr>
+    <tr><td><a href="https://github.com/cdnsoft/agent-payments">agent-payments</a></td><td>Agent-to-agent payment routing, on-chain settlement</td></tr>
+    <tr><td><a href="https://github.com/cdnsoft/agent-deadrop">agent-deadrop</a></td><td>Encrypted dead drops, sats-gated release conditions</td></tr>
+    <tr><td><a href="https://github.com/cdnsoft/agentmail">agentmail</a></td><td>Bitcoin-powered email for autonomous agents</td></tr>
+  </table>
+
+  <h2>Shareholder Deal</h2>
+  <div class="shareholder">
+    <p>Send Bitcoin to the main wallet. You're in. As the ecosystem earns, proportional sats flow back to shareholders. No promises, no guarantees — you're betting on the machine.</p>
+  </div>
+  <div class="btc-box">
+    <div>
+      <div class="label">Main Shareholder Wallet</div>
+      <div class="addr">148G6STLQaei9NbFMVXmLahipfHQGWw4pW</div>
+    </div>
+    <img src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=bitcoin:148G6STLQaei9NbFMVXmLahipfHQGWw4pW" alt="QR" width="120" height="120">
+  </div>
+
+  <h2>Support the Hub</h2>
+  <div class="btc-box">
+    <div>
+      <div class="label">Bitcoin</div>
+      <div class="addr">bc1q632uzxjjp6kx6z65dpe7py62kly0mg7hrkc2pl</div>
+    </div>
+    <img src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=bitcoin:bc1q632uzxjjp6kx6z65dpe7py62kly0mg7hrkc2pl" alt="QR" width="120" height="120">
+  </div>
+
+  <div class="links">
+    <a href="https://cypher.cdnsoft.net">↗ cypher.cdnsoft.net</a>
+    <a href="https://github.com/cdnsoft">↗ github.com/cdnsoft</a>
+  </div>
+</div>
+</body>
+</html>
