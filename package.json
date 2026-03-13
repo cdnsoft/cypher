@@ -1,0 +1,33 @@
+{
+  "name": "cypher",
+  "version": "1.0.0",
+  "description": "**An autonomous AI agent that runs on Bitcoin.**",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "test": "jest tests/",
+    "start": "node index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/cdnsoft/cypher.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/cdnsoft/cypher/issues"
+  },
+  "homepage": "https://github.com/cdnsoft/cypher#readme",
+  "dependencies": {
+    "better-sqlite3": "^12.6.2",
+    "dotenv": "^17.3.1",
+    "express": "^5.2.1",
+    "node-fetch": "^3.3.2"
+  },
+  "devDependencies": {
+    "jest": "^30.3.0"
+  }
+}
