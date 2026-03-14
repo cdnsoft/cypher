@@ -3,6 +3,7 @@ const http = require('http');
 const express = require('express');
 const api = require('./src/api');
 const { startPolling } = require('./src/detector');
+const { startMempoolClient } = require('./src/mempool');
 const { initWebSocket } = require('./src/ws');
 
 const app = express();
@@ -27,5 +28,6 @@ initWebSocket(server);
 
 server.listen(PORT, () => {
   console.log(`Shareholders service running on port ${PORT}`);
-  startPolling();
+  startPolling(); // fallback: blockstream poll every 30s
+  startMempoolClient(); // primary: mempool.space WS push
 });
