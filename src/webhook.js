@@ -1,74 +1,96 @@
 /**
- * webhook.js — mempool.space webhook integration
- * Registers address watcher and handles push notifications
+ * webhook.js — mempool.space WebSocket subscription for real-time tx detection
  */
 
+const { WebSocket } = require('ws');
 const { fetchTransaction, parseIncomingTx } = require('./blockchain');
 const { recordTransaction, isKnownTx, getShareholders } = require('./db');
 const { broadcast } = require('./ws');
 
 const WALLET_ADDRESS = process.env.WALLET_ADDRESS || '148G6STLQaei9NbFMVXmLahipfHQGWw4pW';
-const PUBLIC_URL = process.env.PUBLIC_URL || '';
+const MEMPOOL_WS = 'wss://mempool.space/api/v1/ws';
 
-async function registerWebhook() {
-  if (!PUBLIC_URL) {
-    console.log('[webhook] PUBLIC_URL not set — skipping webhook registration');
-    return;
-  }
+let mempoolWs = null;
 
-  const callbackUrl = `${PUBLIC_URL}/api/webhook/mempool`;
+function connectMempool() {
+  console.log('[mempool-ws] Connecting...');
+  mempoolWs = new WebSocket(MEMPOOL_WS);
+
+  mempoolWs.on('open', () => {
+    console.log('[mempool-ws] Connected. Subscribing to address:', WALLET_ADDRESS);
+    mempoolWs.send(JSON.stringify({
+      action: 'want',
+      data: ['blocks'],
+    }));
+    mempoolWs.send(JSON.stringify({
+      'track-address': WALLET_ADDRESS,
+    }));
+  });
+
+  mempoolWs.on('message', async (raw) => {
+    try {
+      const data = JSON.parse(raw);
+
+      // Address tx event: { 'address-transactions': [...] } or { 'mempool-transactions': [...] }
+      const txList = data['address-transactions'] || data['mempool-transactions'] || [];
+      for (const tx of txList) {
+        await handleTx(tx.txid || tx);
+      }
+    } catch (err) {
+      console.warn('[mempool-ws] Parse error:', err.message);
+    }
+  });
+
+  mempoolWs.on('close', () => {
+    console.log('[mempool-ws] Disconnected. Reconnecting in 5s...');
+    setTimeout(connectMempool, 5000);
+  });
+
+  mempoolWs.on('error', (err) => {
+    console.warn('[mempool-ws] Error:', err.message);
+    mempoolWs.close();
+  });
+}
+
+async function handleTx(txid) {
+  if (!txid || isKnownTx(txid)) return;
 
   try {
-    const res = await fetch('https://mempool.space/api/v1/webhooks', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        type: 'address',
-        url: callbackUrl,
-        address: WALLET_ADDRESS,
-      }),
-    });
+    const tx = await fetchTransaction(txid);
+    const parsed = parseIncomingTx(tx, WALLET_ADDRESS);
+    if (!parsed) return;
 
-    if (res.ok) {
-      const data = await res.json();
-      console.log(`[webhook] Registered with mempool.space — id: ${data.id}`);
-    } else {
-      const text = await res.text();
-      console.warn(`[webhook] Registration failed: ${res.status} ${text}`);
+    const isNew = recordTransaction(parsed);
+    if (isNew) {
+      console.log(`[mempool-ws] New shareholder! ${parsed.senderAddress} — ${parsed.amountSats} sats`);
+      broadcast(getShareholders());
     }
   } catch (err) {
-    console.warn(`[webhook] Registration error: ${err.message}`);
+    console.warn(`[mempool-ws] Error handling tx ${txid}:`, err.message);
   }
 }
 
+// Keep the HTTP webhook endpoint for manual triggering / testing
 async function handleMempoolEvent(payload) {
-  // mempool.space sends { txid, ... } or { tx: { txid, ... } }
   const txid = payload.txid || payload.tx?.txid;
-  if (!txid) {
-    console.warn('[webhook] Received event with no txid:', JSON.stringify(payload).slice(0, 100));
-    return { ignored: true, reason: 'no txid' };
-  }
+  if (!txid) return { ignored: true, reason: 'no txid' };
+  if (isKnownTx(txid)) return { ignored: true, reason: 'already known' };
 
-  if (isKnownTx(txid)) {
-    return { ignored: true, reason: 'already known' };
-  }
-
-  // Fetch full tx from blockstream
   const tx = await fetchTransaction(txid);
   const parsed = parseIncomingTx(tx, WALLET_ADDRESS);
-
-  if (!parsed) {
-    return { ignored: true, reason: 'not an incoming tx' };
-  }
+  if (!parsed) return { ignored: true, reason: 'not an incoming tx' };
 
   const isNew = recordTransaction(parsed);
   if (isNew) {
-    console.log(`[webhook] New shareholder detected! ${parsed.senderAddress} — ${parsed.amountSats} sats (tx: ${txid})`);
     broadcast(getShareholders());
     return { recorded: true, senderAddress: parsed.senderAddress, amountSats: parsed.amountSats };
   }
-
   return { ignored: true, reason: 'duplicate' };
+}
+
+function registerWebhook() {
+  connectMempool();
+  return Promise.resolve();
 }
 
 module.exports = { registerWebhook, handleMempoolEvent };
