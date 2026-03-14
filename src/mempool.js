@@ -38,7 +38,8 @@ function connect() {
 
       // Address tx events come as 'address-transactions' (confirmed) 
       // or inside the address tracking response
-      const txList = msg['address-transactions'] || msg['mempool-transactions'] || [];
+      // address-transactions = new mempool txs, block-transactions = newly confirmed
+      const txList = [...(msg['address-transactions'] || []), ...(msg['block-transactions'] || [])];
 
       for (const tx of txList) {
         const txid = tx.txid || tx;
