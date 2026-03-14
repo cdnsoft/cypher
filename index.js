@@ -2,6 +2,7 @@ require('dotenv').config();
 const express = require('express');
 const api = require('./src/api');
 const { startPolling } = require('./src/detector');
+const { registerWebhook } = require('./src/webhook');
 
 const app = express();
 app.use(express.json());
@@ -22,4 +23,5 @@ const PORT = process.env.PORT || 3211;
 app.listen(PORT, () => {
   console.log(`Shareholders service running on port ${PORT}`);
   startPolling();
+  registerWebhook().catch(console.error);
 });

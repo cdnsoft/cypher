@@ -1,10 +1,11 @@
 process.env.DB_PATH = '/tmp/test-shareholders.db';
 
 const fs = require('fs');
-const { recordTransaction, getShareholders, isKnownTx, setLabel, getTransactions } = require('../src/db');
+const { recordTransaction, getShareholders, isKnownTx, setLabel, getTransactions, resetDb } = require('../src/db');
 
 // Clean up before tests
 beforeAll(() => {
+  resetDb();
   if (fs.existsSync(process.env.DB_PATH)) fs.unlinkSync(process.env.DB_PATH);
 });
 

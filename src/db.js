@@ -118,4 +118,9 @@ function getLastSync() {
   return parseInt(row?.value || '0');
 }
 
-module.exports = { getDb, recordTransaction, getShareholders, getTransactions, isKnownTx, setLabel, getLastSync };
+function resetDb() {
+  if (db) { try { db.close(); } catch(_) {} }
+  db = null;
+}
+
+module.exports = { getDb, recordTransaction, getShareholders, getTransactions, isKnownTx, setLabel, getLastSync, resetDb };

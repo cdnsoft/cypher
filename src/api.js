@@ -39,4 +39,17 @@ router.get('/health', (req, res) => {
   res.json({ status: 'ok', last_sync: getLastSync(), timestamp: new Date().toISOString() });
 });
 
+
+// POST /api/webhook/mempool — mempool.space push notification
+router.post('/webhook/mempool', async (req, res) => {
+  try {
+    const { handleMempoolEvent } = require('./webhook');
+    const result = await handleMempoolEvent(req.body);
+    res.json(result);
+  } catch (err) {
+    console.error('[webhook] Handler error:', err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 module.exports = router;
