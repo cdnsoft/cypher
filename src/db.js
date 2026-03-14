@@ -8,16 +8,15 @@ const fs = require('fs');
 
 const DB_PATH = process.env.DB_PATH || path.join(__dirname, '..', 'data', 'shareholders.db');
 
-const _dbs = {};
+let db;
 
 function getDb() {
-  const dbPath = process.env.DB_PATH || path.join(__dirname, '..', 'data', 'shareholders.db');
-  if (!_dbs[dbPath]) {
-    fs.mkdirSync(path.dirname(dbPath), { recursive: true });
-    _dbs[dbPath] = new Database(dbPath);
-    migrate(_dbs[dbPath]);
+  if (!db) {
+    fs.mkdirSync(path.dirname(DB_PATH), { recursive: true });
+    db = new Database(DB_PATH);
+    migrate(db);
   }
-  return _dbs[dbPath];
+  return db;
 }
 
 function migrate(db) {
@@ -50,30 +49,34 @@ function migrate(db) {
 
 function recordTransaction(tx) {
   const db = getDb();
+
   const insert = db.prepare(`
     INSERT OR IGNORE INTO transactions (txid, sender_address, amount_sats, confirmed_at, confirmed)
-    VALUES (@txid, @senderAddress, @amountSats, @confirmedAt, @confirmed)
+    VALUES (?, ?, ?, ?, ?)
   `);
 
   const upsertShareholder = db.prepare(`
     INSERT INTO shareholders (address, total_sats, first_seen, last_seen)
-    VALUES (@address, @amountSats, strftime('%s','now'), strftime('%s','now'))
+    VALUES (?, ?, strftime('%s','now'), strftime('%s','now'))
     ON CONFLICT(address) DO UPDATE SET
-      total_sats = total_sats + @amountSats,
+      total_sats = total_sats + excluded.total_sats,
       last_seen = strftime('%s','now')
   `);
 
-  const updateMeta = db.prepare(`UPDATE meta SET value = @value WHERE key = 'last_sync'`);
+  const updateMeta = db.prepare(`UPDATE meta SET value = ? WHERE key = 'last_sync'`);
 
   const run = db.transaction((tx) => {
-    const result = insert.run({
-      ...tx,
-      confirmed: tx.confirmed ? 1 : 0,
-    });
+    const result = insert.run(
+      tx.txid,
+      tx.senderAddress || null,
+      tx.amountSats,
+      tx.confirmedAt || null,
+      tx.confirmed ? 1 : 0
+    );
     if (result.changes > 0 && tx.senderAddress) {
-      upsertShareholder.run({ address: tx.senderAddress, amountSats: tx.amountSats });
+      upsertShareholder.run(tx.senderAddress, tx.amountSats);
     }
-    updateMeta.run({ value: String(Date.now()) });
+    updateMeta.run(String(Date.now()));
     return result.changes > 0;
   });
 
@@ -107,9 +110,7 @@ function isKnownTx(txid) {
 }
 
 function setLabel(address, label) {
-  getDb().prepare(`
-    UPDATE shareholders SET label = ? WHERE address = ?
-  `).run(label, address);
+  getDb().prepare(`UPDATE shareholders SET label = ? WHERE address = ?`).run(label, address);
 }
 
 function getLastSync() {
