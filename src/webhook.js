@@ -4,7 +4,8 @@
  */
 
 const { fetchTransaction, parseIncomingTx } = require('./blockchain');
-const { recordTransaction, isKnownTx } = require('./db');
+const { recordTransaction, isKnownTx, getShareholders } = require('./db');
+const { broadcast } = require('./ws');
 
 const WALLET_ADDRESS = process.env.WALLET_ADDRESS || '148G6STLQaei9NbFMVXmLahipfHQGWw4pW';
 const PUBLIC_URL = process.env.PUBLIC_URL || '';
@@ -63,6 +64,7 @@ async function handleMempoolEvent(payload) {
   const isNew = recordTransaction(parsed);
   if (isNew) {
     console.log(`[webhook] New shareholder detected! ${parsed.senderAddress} — ${parsed.amountSats} sats (tx: ${txid})`);
+    broadcast(getShareholders());
     return { recorded: true, senderAddress: parsed.senderAddress, amountSats: parsed.amountSats };
   }
 
