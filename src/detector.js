@@ -3,10 +3,11 @@
  */
 
 const { fetchTransactions, parseIncomingTx } = require('./blockchain');
-const { recordTransaction, isKnownTx } = require('./db');
+const { recordTransaction, isKnownTx, getShareholders } = require('./db');
+const { broadcast } = require('./ws');
 
 const WALLET_ADDRESS = process.env.WALLET_ADDRESS || '148G6STLQaei9NbFMVXmLahipfHQGWw4pW';
-const POLL_INTERVAL_MS = parseInt(process.env.POLL_INTERVAL_MS || '300000'); // 5 min default
+const POLL_INTERVAL_MS = parseInt(process.env.POLL_INTERVAL_MS || '30000'); // 30s default
 
 async function sync() {
   console.log(`[detector] Syncing transactions for ${WALLET_ADDRESS}...`);
@@ -23,6 +24,7 @@ async function sync() {
     if (isNew) {
       newCount++;
       console.log(`[detector] New shareholder tx: ${parsed.txid} | ${parsed.senderAddress} | ${parsed.amountSats} sats`);
+      broadcast(getShareholders());
     }
   }
 

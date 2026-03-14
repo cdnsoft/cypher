@@ -3,7 +3,6 @@ const http = require('http');
 const express = require('express');
 const api = require('./src/api');
 const { startPolling } = require('./src/detector');
-const { registerWebhook } = require('./src/webhook');
 const { initWebSocket } = require('./src/ws');
 
 const app = express();
@@ -29,5 +28,4 @@ initWebSocket(server);
 server.listen(PORT, () => {
   console.log(`Shareholders service running on port ${PORT}`);
   startPolling();
-  registerWebhook().catch(console.error);
 });
